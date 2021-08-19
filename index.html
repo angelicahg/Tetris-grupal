@@ -9,21 +9,21 @@
     </head>
 
     <body onload="eventoCargar()" onkeydown="tecla(event)">
+       
         <audio
             src="assets/Original Tetris Theme - Extended 10min (Nintendo).mp3"
             autoplay="true"
         ></audio>
         <h1>TETRIS</h1>
-        <div class="container">
-            <div id="tetris"></div>
-
-            <div id="score"></div>
+        <div id="tetris"></div>
+           <div id="score"></div>
             <div class="div">
                 ◄ izquierda <br />
                 ► derecha <br />
                 ▼ bajar rapido <br />
                 ▲ rotar pieza
             </div>
+            <canvas id="tetris2" width="240" height="400" />
         </div>
     </body>
     <script src="script.js"></script>
