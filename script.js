@@ -45,8 +45,8 @@ function createMatrix(w, h) {
     }
     return matrix;
 }
-
-function createPiece(type) {
+/*tetris forms*/ 
+ function createPiece(type) {
     if (type === "I") {
         return [
             [0, 1, 0, 0],
@@ -222,7 +222,7 @@ document.addEventListener("keydown", (event) => {
         playerRotate(1);
     }
 });
-
+/*shape colors*/ 
 const colors = [
     null,
     "#FF0D72",
