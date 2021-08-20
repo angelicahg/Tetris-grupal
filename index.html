@@ -1,30 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="assets/style.css" />
-        <title>tetris</title>
+        <title>Tetris</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/assets/style.css" />
     </head>
-
-    <body onload="eventoCargar()" onkeydown="tecla(event)">
-       
+    <body background="/img/fondo10.webp">
         <audio
             src="assets/Original Tetris Theme - Extended 10min (Nintendo).mp3"
             autoplay="true"
         ></audio>
         <h1>TETRIS</h1>
-        <div id="tetris"></div>
-           <div id="score"></div>
-            <div class="div">
-                ◄ izquierda <br />
-                ► derecha <br />
-                ▼ bajar rapido <br />
-                ▲ rotar pieza
-            </div>
-            <canvas id="tetris2" width="240" height="400" />
+
+        <div id="score"></div>
+        <div class="div">
+            ◄ izquierda <br />
+            ► derecha <br />
+            ▼ bajar rapido <br />
+            ▲ rotar pieza
         </div>
+
+        <canvas id="tetris" width="240" height="400"></canvas>
+
+        <script src="script.js"></script>
     </body>
-    <script src="script.js"></script>
 </html>

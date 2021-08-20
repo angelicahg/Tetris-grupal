@@ -1,206 +1,247 @@
-var velocidad = 50000; //velocidad del juego/game speed
-var fpi, cpi, rot; //fila, columna y rotación de la ficha/tab row, column and rotation
-var tablero; //matriz con el tablero/matrix with board
-var pieza = 0; //pieza-part
-var record = 0; //almacena la mejor puntuación/stores the best score
-var lineas = 0; //almacena la  puntuación actual/stores current score
-var pos = [
-    //Valores referencia de coordenadas relativas-Relative coordinate reference values
-    [0, 0],
-    [0, 1],
-    [-1, 0],
-    [1, 0],
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [0, -2],
-];
-var piezas = [
-    //Diseño de las piezas, el primer valor de cada fila corresponde con el número de rotaciones posibles/Design of the pieces, the first value of each row corresponds to the number of possible rotations
-    [4, 0, 1, 2, 3],
-    [4, 0, 1, 5, 6],
-    [4, 0, 1, 5, 4],
-    [2, 0, 1, 5, 7],
-    [2, 0, 2, 5, 6],
-    [2, 0, 3, 5, 4],
-    [1, 0, 5, 6, 3],
-];
-//Genera una nueva partida inicializando las variables/Generate a new game by initializing the variables
-function nuevaPartida() {
-    velocidad = 50000;
-    tablero = new Array(20);
-    for (var n = 0; n < 20; n++) {
-        tablero[n] = new Array(9);
-        for (var m = 0; m < 9; m++) {
-            tablero[n][m] = 0;
+const canvas = document.getElementById("tetris");
+const context = canvas.getContext("2d");
+
+context.scale(20, 20); //medidas de las fichas
+
+function arenaSweep() {
+    let rowCount = 1;
+    outer: for (let y = arena.length - 1; y > 0; --y) {
+        for (let x = 0; x < arena[y].length; ++x) {
+            if (arena[y][x] === 0) {
+                continue outer;
+            }
         }
+
+        const row = arena.splice(y, 1)[0].fill(0);
+        arena.unshift(row);
+        ++y;
+
+        player.score += rowCount * 10;
+        rowCount *= 2;
     }
-    lineas = 0;
-    nuevaPieza();
 }
-//Detecta si una fila columna del tablero está libre para ser ocupada/Detects if a column row of the board is free to be occupied
-function cuadroNoDisponible(f, c) {
-    if (f < 0) return false;
-    return c < 0 || c >= 9 || f >= 20 || tablero[f][c] > 0;
-}
-//Detecta si la pieza activa colisiona fuera del tablero o con otra pieza/Detects if the active piece collides off the board or with another piece
-function colisionaPieza() {
-    for (var v = 1; v < 5; v++) {
-        var des = piezas[pieza][v];
-        var pos2 = rotarCasilla(pos[des]);
-        if (cuadroNoDisponible(pos2[0] + fpi, pos2[1] + cpi)) {
-            return true;
+
+function collide(arena, player) {
+    const m = player.matrix;
+    const o = player.pos;
+
+    for (let y = 0; y < m.length; ++y) {
+        for (let x = 0; x < m[y].length; ++x) {
+            if (
+                m[y][x] !== 0 &&
+                (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0
+            ) {
+                return true;
+            }
         }
     }
     return false;
 }
-//Detecta si hay lineas completas y si las hay las computa y borra la linea desplazando la submatriz superior/Detects if there are complete lines and if there are, computes them and deletes the line by moving the upper sub-matrix
-function detectarLineas() {
-    for (var f = 0; f < 20; f++) {
-        var contarCuadros = 0;
-        for (var c = 0; c < 9; c++) {
-            if (tablero[f][c] > 0) {
-                contarCuadros++;
+
+function createMatrix(w, h) {
+    const matrix = [];
+    while (h--) {
+        matrix.push(new Array(w).fill(0));
+    }
+    return matrix;
+}
+
+function createPiece(type) {
+    if (type === "I") {
+        return [
+            [0, 1, 0, 0],
+            [0, 1, 0, 0],
+            [0, 1, 0, 0],
+            [0, 1, 0, 0],
+        ];
+    } else if (type === "L") {
+        return [
+            [0, 2, 0],
+            [0, 2, 0],
+            [0, 2, 2],
+        ];
+    } else if (type === "J") {
+        return [
+            [0, 3, 0],
+            [0, 3, 0],
+            [3, 3, 0],
+        ];
+    } else if (type === "O") {
+        return [
+            [4, 4],
+            [4, 4],
+        ];
+    } else if (type === "Z") {
+        return [
+            [5, 5, 0],
+            [0, 5, 5],
+            [0, 0, 0],
+        ];
+    } else if (type === "S") {
+        return [
+            [0, 6, 6],
+            [6, 6, 0],
+            [0, 0, 0],
+        ];
+    } else if (type === "T") {
+        return [
+            [0, 7, 0],
+            [7, 7, 7],
+            [0, 0, 0],
+        ];
+    }
+}
+
+function drawMatrix(matrix, offset) {
+    matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value !== 0) {
+                context.fillStyle = colors[value];
+                context.fillRect(x + offset.x, y + offset.y, 1, 1);
             }
-        }
-        if (contarCuadros == 9) {
-            for (var f2 = f; f2 > 0; f2--) {
-                for (var c2 = 0; c2 < 9; c2++) {
-                    tablero[f2][c2] = tablero[f2 - 1][c2];
-                }
+        });
+    });
+}
+
+function draw() {
+    context.fillStyle = "#000";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawMatrix(arena, { x: 0, y: 0 });
+    drawMatrix(player.matrix, player.pos);
+}
+
+function merge(arena, player) {
+    player.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value !== 0) {
+                arena[y + player.pos.y][x + player.pos.x] = value;
             }
-            lineas++;
+        });
+    });
+}
+
+function rotate(matrix, dir) {
+    for (let y = 0; y < matrix.length; ++y) {
+        for (let x = 0; x < y; ++x) {
+            [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+        }
+    }
+
+    if (dir > 0) {
+        matrix.forEach((row) => row.reverse());
+    } else {
+        matrix.reverse();
+    }
+}
+
+function playerDrop() {
+    player.pos.y++;
+    if (collide(arena, player)) {
+        player.pos.y--;
+        merge(arena, player);
+        playerReset();
+        arenaSweep();
+        updateScore();
+    }
+
+    dropCounter = 0;
+}
+
+function playerMove(offset) {
+    player.pos.x += offset;
+    if (collide(arena, player)) {
+        player.pos.x -= offset;
+    }
+}
+
+function playerReset() {
+    const pieces = "TJLOSZI";
+    player.matrix = createPiece(pieces[(pieces.length * Math.random()) | 0]);
+    player.pos.y = 0;
+    player.pos.x =
+        ((arena[0].length / 2) | 0) - ((player.matrix[0].length / 2) | 0);
+
+    if (collide(arena, player)) {
+        arena.forEach((row) => row.fill(0));
+        player.score = 0;
+        updateScore();
+    }
+}
+
+function playerRotate(dir) {
+    const pos = player.pos.x;
+    let offset = 1;
+    rotate(player.matrix, dir);
+
+    while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > player.matrix[0].length) {
+            rotate(player.matrix, -dir);
+            player.pos.x = pos;
+            return;
         }
     }
 }
-//Baja la pieza, si toca otra pieza o el suelo, saca una nueva pieza/Put down the piece, if it touches another piece or the ground, take out a new piece
-function bajarPieza() {
-    fpi = fpi + 1;
-    if (colisionaPieza()) {
-        fpi = fpi - 1;
-        for (v = 1; v < 5; v++) {
-            des = piezas[pieza][v];
-            var pos2 = rotarCasilla(pos[des]);
-            if (
-                pos2[0] + fpi >= 0 &&
-                pos2[0] + fpi < 20 &&
-                pos2[1] + cpi >= 0 &&
-                pos2[1] + cpi < 9
-            ) {
-                tablero[pos2[0] + fpi][pos2[1] + cpi] = pieza + 1;
-            }
-        }
-        detectarLineas();
-        //Si hay algun cuadro en la fila 0 reinicia el juego/If there is any box in row 0 restart the game
-        var reiniciar = 0;
-        for (var c = 0; c < 9; c++) {
-            if (tablero[0][c] != 0) {
-                reiniciar = 1;
-            }
-        }
-        if (reiniciar == 1) {
-            if (lineas > record) {
-                record = lineas;
-            }
-            nuevaPartida();
-        } else {
-            nuevaPieza();
-        }
+
+let dropCounter = 0;
+let dropInterval = 1000;
+
+let lastTime = 0;
+function update(time = 0) {
+    const deltaTime = time - lastTime;
+
+    dropCounter += deltaTime;
+    if (dropCounter > dropInterval) {
+        playerDrop();
     }
+
+    lastTime = time;
+
+    draw();
+    requestAnimationFrame(update);
 }
-//Mueve la pieza lateralmente-Move the part laterally
-function moverPieza(des) {
-    cpi = cpi + des;
-    if (colisionaPieza()) {
-        cpi = cpi - des;
+
+function updateScore() {
+    document.getElementById("score").innerText = player.score;
+}
+
+document.addEventListener("keydown", (event) => {
+    if (event.keyCode === 37) {
+        playerMove(-1);
+    } else if (event.keyCode === 39) {
+        playerMove(1);
+    } else if (event.keyCode === 40) {
+        playerDrop();
+    } else if (event.keyCode === 81) {
+        playerRotate(-1);
+    } else if (event.keyCode === 38) {
+        playerRotate(-1);
+    } else if (event.keyCode === 87) {
+        playerRotate(1);
     }
-}
-//Rota la pieza según el número de rotaciones posibles tenga la pieza activa. (posición 0 de la pieza)/Rotate the part according to the number of possible rotations the active part has. (position 0 of the piece)
-function rotarPieza() {
-    rot = rot + 1;
-    if (rot == piezas[pieza][0]) {
-        rot = 0;
-    }
-    if (colisionaPieza()) {
-        rot = rot - 1;
-        if (rot == -1) {
-            rot = piezas[pieza][0] - 1;
-        }
-    }
-}
-//Obtiene unas coordenadas f,c y las rota 90 grados/Obtains coordinates f, c and rotates them 90 degrees
-function rotarCasilla(celda) {
-    var pos2 = [celda[0], celda[1]];
-    for (var n = 0; n < rot; n++) {
-        var f = pos2[1];
-        var c = -pos2[0];
-        pos2[0] = f;
-        pos2[1] = c;
-    }
-    return pos2;
-}
-//Genera una nueva pieza aleatoriamente/Generate a new piece randomly
-function nuevaPieza() {
-    cpi = 3;
-    fpi = 0;
-    rot = 0;
-    pieza = Math.floor(Math.random() * 7);
-}
-//Ejecución principal del juego, realiza la animación y repinta/Main run of the game, perform animation and repaint
-function tick() {
-    bajarPieza();
-    pintar();
-    setTimeout("tick()", velocidad / 100);
-}
-//Pinta el tablero (lo genera con html) y lo plasma en un div./Paint the board (generate it with html) and render it in a div.
-function pintar() {
-    var lt = " <";
-    var des;
-    var html = "<table class='tetris'>";
-    for (var f = 0; f < 20; f++) {
-        html += "<tr>";
-        for (var c = 0; c < 9; c++) {
-            var color = tablero[f][c];
-            if (color == 0) {
-                for (v = 1; v < 5; v++) {
-                    des = piezas[pieza][v];
-                    var pos2 = rotarCasilla(pos[des]);
-                    if (f == fpi + pos2[0] && c == cpi + pos2[1]) {
-                        color = pieza + 1;
-                    }
-                }
-            }
-            html += "<td class='celda" + color + "'/>";
-        }
-        html += lt + "/tr>";
-    }
-    html += lt + "/table>";
-    html += "<br />Lineas : " + lineas;
-    html += "<br />Record : " + record;
-    document.getElementById("tetris").innerHTML = html;
-    velocidad = Math.max(velocidad - 1, 500);
-}
-//Al iniciar la pagina inicia el juego/When you start the page, the game starts
-function eventoCargar() {
-    nuevaPartida();
-    setTimeout("tick()", 1);
-}
-//Al pulsar una tecla
-function tecla(e) {
-    var characterCode = e && e.which ? e.which : e.keyCode;
-    switch (characterCode) {
-        case 37:
-            moverPieza(-1);
-            break;
-        case 38:
-            rotarPieza();
-            break;
-        case 39:
-            moverPieza(1);
-            break;
-        case 40:
-            bajarPieza();
-            break;
-    }
-    pintar();
-}
+});
+
+const colors = [
+    null,
+    "#FF0D72",
+    "#0DC2FF",
+    "#0DFF72",
+    "#F538FF",
+    "#FF8E0D",
+    "#FFE138",
+    "#3877FF",
+];
+
+const arena = createMatrix(12, 20);
+
+const player = {
+    pos: { x: 0, y: 0 },
+    matrix: null,
+    score: 0,
+};
+
+playerReset();
+updateScore();
+update();
