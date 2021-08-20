@@ -7,22 +7,23 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="stylesheet" href="/assets/style.css" />
     </head>
-    <body background="/img/fondo10.webp">
+    <body>
         <audio
             src="assets/Original Tetris Theme - Extended 10min (Nintendo).mp3"
             autoplay="true"
         ></audio>
         <h1>TETRIS</h1>
-
         <div id="score"></div>
-        <div class="div">
-            ◄ izquierda <br />
-            ► derecha <br />
-            ▼ bajar rapido <br />
-            ▲ rotar pieza
-        </div>
+        <div class="screen">
+            <div class="div">
+                ◄ izquierda <br />
+                ► derecha <br />
+                ▼ bajar rapido <br />
+                ▲ rotar pieza
+            </div>
 
-        <canvas id="tetris" width="240" height="400"></canvas>
+            <canvas id="tetris" width="240" height="400"></canvas>
+        </div>
 
         <script src="script.js"></script>
     </body>
