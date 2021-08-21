@@ -13,6 +13,7 @@ function arenaSweep() {
         }
 
         const row = arena.splice(y, 1)[0].fill(0); //Cambia el contenido de un array eliminando elementos existentes y/o agregando nuevos elementos.Change the content of an array by removing existing elements and / or adding new elements.
+
         arena.unshift(row);
         ++y;
 
@@ -20,9 +21,9 @@ function arenaSweep() {
         rowCount *= 2;
     }
 }
-
+//Detección de colisiones-Collision detection
 function collide(arena, player) {
-    //Detección de colisiones-Collision detection
+    const m = player.matrix;
     const o = player.pos;
 
     for (let y = 0; y < m.length; ++y) {
@@ -37,18 +38,16 @@ function collide(arena, player) {
     }
     return false;
 }
-
+//The literal array, which uses square brackets.La matriz literal, que usa corchetes.
 function createMatrix(w, h) {
-    //The literal array, which uses square brackets.La matriz literal, que usa corchetes.
     const matrix = [];
     while (h--) {
         matrix.push(new Array(w).fill(0));
     }
     return matrix;
 }
-
+/*tetris forms*/ //Se visualiza de manera global en un lienzo It is displayed globally on a canvas.
 function createPiece(type) {
-    //Se visualiza de manera global en un lienzo It is displayed globally on a canvas.
     if (type === "I") {
         return [
             [0, 1, 0, 0],
@@ -93,9 +92,8 @@ function createPiece(type) {
         ];
     }
 }
-
+//-is a type of global object used to store data. Arrays consist of a collection or ordered list that contains zero or more data types, and use numeric indexes starting at 0 to access specific elements.
 function drawMatrix(matrix, offset) {
-    //-is a type of global object used to store data. Arrays consist of a collection or ordered list that contains zero or more data types, and use numeric indexes starting at 0 to access specific elements.
     matrix.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value !== 0) {
@@ -105,18 +103,17 @@ function drawMatrix(matrix, offset) {
         });
     });
 }
+//draw each box of the can you go
 
 function draw() {
-    //draw each box of the can you go
     context.fillStyle = "#000";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     drawMatrix(arena, { x: 0, y: 0 });
     drawMatrix(player.matrix, player.pos);
 }
-
+//COMBINE PROPERTIES OF TWO OBJECTS TO CREATE A NEW OBJECT-COMBINA PROPIEDADES DE DOS OBJETOS PARA CREAR UN NUEVO OBJETO
 function merge(arena, player) {
-    //COMBINE PROPERTIES OF TWO OBJECTS TO CREATE A NEW OBJECT-COMBINA PROPIEDADES DE DOS OBJETOS PARA CREAR UN NUEVO OBJETO
     player.matrix.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value !== 0) {
@@ -125,9 +122,8 @@ function merge(arena, player) {
         });
     });
 }
-
+//es un método de la contexto de dibujo 2D. El método rotate () le permite rotar un objeto de dibujo en el lienzo.-it is a method of the 2D drawing context. The rotate () method allows you to rotate a drawing object on the canvas.
 function rotate(matrix, dir) {
-    //es un método de la contexto de dibujo 2D. El método rotate () le permite rotar un objeto de dibujo en el lienzo.-it is a method of the 2D drawing context. The rotate () method allows you to rotate a drawing object on the canvas.
     for (let y = 0; y < matrix.length; ++y) {
         //devuelve la longitud de una cadena -returns the length of a string
         for (let x = 0; x < y; ++x) {
@@ -141,9 +137,8 @@ function rotate(matrix, dir) {
         matrix.reverse();
     }
 }
-
+//draggable element  elemento de tipo arrastrable
 function playerDrop() {
-    //Ocurre cuando empezamos a mover un elemento de tipo arrastrable dentro de su contenedor, pero todavía no ha sido soltado, este evento se dispara cuando el elemento "arrastrable" entra dentro de la "zona para soltar"-It occurs when we start to move a draggable element inside its container, but it has not yet been dropped, this event is fired when the "draggable" element enters the "drop zone"
     player.pos.y++;
     if (collide(arena, player)) {
         player.pos.y--;
@@ -164,9 +159,8 @@ function playerMove(offset) {
 }
 
 function playerReset() {
-    const pieces = "TJLOSZI"; //parts name
-
-    player.matrix = createPiece(pieces[(pieces.length * Math.random()) | 0]); //llama la pieza aleatoriamante-call the random piece
+    const pieces = "TJLOSZI";
+    player.matrix = createPiece(pieces[(pieces.length * Math.random()) | 0]);
     player.pos.y = 0;
     player.pos.x =
         ((arena[0].length / 2) | 0) - ((player.matrix[0].length / 2) | 0);
@@ -179,7 +173,6 @@ function playerReset() {
 }
 
 function playerRotate(dir) {
-    //define una transformación que gira un elemento alrededor de un punto fijo en un plano 2D sin deformarlo.-defines a transformation that rotates an element around a fixed point in a 2D plane without deforming it.
     const pos = player.pos.x;
     let offset = 1;
     rotate(player.matrix, dir);
@@ -210,15 +203,14 @@ function update(time = 0) {
     lastTime = time;
 
     draw();
-    requestAnimationFrame(update); // requestAnimationFrame informa al navegador que quieres realizar una animación y solicita que el navegador programe el repintado de la ventana para el próximo ciclo de animación.-requestAnimationFrame informs the browser that you want to perform an animation and requests that the browser schedule the repaint of the window for the next animation cycle.
+    requestAnimationFrame(update);
 }
 
 function updateScore() {
     document.getElementById("score").innerText = player.score;
 }
-
+//it is produced by all keys, regardless of whether they are characters or not. es producido por todas las teclas, independientemente de si estas son caracteres o no.
 document.addEventListener("keydown", (event) => {
-    //El evento keydown se produce cuando se presiona una tecla The keydown event occurs when a key is pressed
     if (event.keyCode === 37) {
         playerMove(-1);
     } else if (event.keyCode === 39) {
@@ -233,10 +225,8 @@ document.addEventListener("keydown", (event) => {
         playerRotate(1);
     }
 });
-
+/*shape colors*/
 const colors = [
-    //Color palette
-
     null,
     "#FF0D72",
     "#0DC2FF",
